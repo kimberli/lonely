@@ -25,7 +25,8 @@ var EVENTS = {
   SUBMIT_DELTA: 'submitDelta',
   RESET_STATE: 'resetState',
   SAVED_STATES_CHANGED: 'savedStatesChanged',
-  ADD_SAVED_STATE: 'addSavedState'
+  ADD_SAVED_STATE: 'addSavedState',
+  VOLUME_CHANGED: 'volumeChanged',
 };
 
 var express = require('express'),
@@ -188,6 +189,17 @@ io.sockets.on('connection', function(socket) {
     socket.broadcast.emit(EVENTS.SAVED_STATES_CHANGED, { savedStates: saved_states });
     socket.emit(EVENTS.SAVED_STATES_CHANGED, { savedStates: saved_states });
   });
+
+  //added code for emitting volume change event every second
+  setInterval(function() {
+    var volumes = {};
+    for (var i = 0; i < current_users.length; i++) {
+      var user = current_users[i];
+      volumes[user.person.id] = Math.floor(Math.random() * 6);
+    }
+    socket.emit(EVENTS.VOLUME_CHANGED, {"volumes": volumes});
+    // console.log("change volume: " + JSON.stringify(volumes));
+  }, 2000);
 });
 
 

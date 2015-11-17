@@ -26,7 +26,8 @@ var EVENTS = {
   SUBMIT_DELTA: 'submitDelta',
   RESET_STATE: 'resetState',
   SAVED_STATES_CHANGED: 'savedStatesChanged',
-  ADD_SAVED_STATE: 'addSavedState'
+  ADD_SAVED_STATE: 'addSavedState',
+  VOLUME_CHANGED: 'volumeChanged',
 };
 
 
@@ -62,6 +63,7 @@ var gapi = (function() {
   var stateChangeFns = [];
   var apiReadyFns = [];
   var userChangeFns = [];
+  var volumeChangeFns = [];
 
   // converts users from a list to a map.
   var convertUsers = function(users) {
@@ -108,6 +110,26 @@ var gapi = (function() {
             stateChangeFns.push(fn);
           }
         }
+      },
+
+      av: {
+        onVolumesChanged: {
+          add: function(fn) {
+            volumeChangeFns.push(fn);
+          }
+        }
+      },
+
+      getHangoutId: function() {
+        return 'r3vXZQXM3Xt6PhP2i';
+      },
+
+      getHangoutUrl: function() {
+        return 'https://talkgadget.google.com/hangouts/_/1b8d9e10742f576bc994e18866ea';
+      },
+
+      getLocalParticipant: function() {
+        return users[my_id];
       },
 
       getParticipantId: function() {
@@ -170,6 +192,14 @@ var gapi = (function() {
         userChangeFns[i]();
       }
     },
+
+    //added this function to run all functions subscribed to volume change event
+    _changeVolume: function(new_volumes) {
+      console.log("volumeChangeFns is length " + volumeChangeFns.length);
+      for (var i = 0; i < volumeChangeFns.length; i++) {
+        volumeChangeFns[i](new_volumes);
+      }
+    }
   }
 })();
 
@@ -194,6 +224,11 @@ socket.on(EVENTS.PARTICIPANTS_CHANGED, function(data) {
 
 socket.on(EVENTS.STATE_CHANGED, function(data) {
   gapi._changeState(data.state);
+});
+
+//on volume change, execute functions
+socket.on(EVENTS.VOLUME_CHANGED, function(data) {
+  gapi._changeVolume(data);
 });
 
 socket.on(EVENTS.SAVED_STATES_CHANGED, function(data) {
